@@ -1,0 +1,79 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  color-scheme: light;
+}
+
+@layer base {
+  body {
+    @apply bg-slate-100/70 text-slate-700 antialiased;
+    font-feature-settings: "cv11", "ss01";
+  }
+  h1, h2, h3 {
+    @apply font-display text-ink-900;
+    letter-spacing: -0.01em;
+  }
+}
+
+@layer components {
+  /* Superfici */
+  .card {
+    @apply rounded-2xl border border-slate-200/80 bg-white p-5 shadow-card transition-shadow;
+  }
+  .card-hover:hover {
+    @apply shadow-soft;
+  }
+  .panel {
+    @apply rounded-2xl border border-slate-200/80 bg-white shadow-card;
+  }
+
+  /* Titoli di sezione con barretta accento */
+  .section-title {
+    @apply flex items-center gap-2.5 text-base font-semibold text-ink-900;
+  }
+  .section-title::before {
+    content: "";
+    @apply h-4 w-1 rounded-full bg-brand-gradient;
+  }
+
+  /* Bottoni */
+  .btn {
+    @apply inline-flex items-center justify-center gap-2 rounded-xl px-4 py-2.5 text-sm font-semibold
+           transition active:scale-[.98] disabled:pointer-events-none disabled:opacity-50;
+  }
+  .btn-primary {
+    @apply btn bg-brand-600 text-white shadow-sm hover:bg-brand-700 hover:shadow-lift;
+  }
+  .btn-ghost {
+    @apply btn border border-slate-300 bg-white text-slate-600 hover:bg-slate-50;
+  }
+
+  /* Pill / badge */
+  .badge {
+    @apply inline-flex items-center gap-1 rounded-full px-2.5 py-0.5 text-xs font-medium;
+  }
+  .badge-neutral { @apply badge bg-slate-100 text-slate-600; }
+  .badge-pos { @apply badge bg-emerald-50 text-emerald-700; }
+  .badge-neg { @apply badge bg-rose-50 text-rose-700; }
+  .badge-brand { @apply badge bg-brand-50 text-brand-700; }
+
+  /* Tabelle */
+  .th {
+    @apply px-3.5 py-3 text-left text-[11px] font-semibold uppercase tracking-wider text-slate-400;
+  }
+  .td {
+    @apply px-3.5 py-2.5 text-sm text-slate-700;
+  }
+
+  /* Input */
+  .input {
+    @apply w-full rounded-xl border border-slate-300 bg-white px-3 py-2.5 text-sm text-slate-800
+           placeholder:text-slate-400 transition
+           focus:border-brand-500 focus:outline-none focus:ring-4 focus:ring-brand-500/15;
+  }
+  .label {
+    @apply mb-1.5 block text-sm font-medium text-slate-600;
+  }
+}

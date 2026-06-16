@@ -1,0 +1,31 @@
+services:
+  db:
+    image: postgres:16-alpine
+    container_name: portfolio_db
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: portfolio
+      POSTGRES_PASSWORD: portfolio
+      POSTGRES_DB: portfolio
+    ports:
+      - "5432:5432"
+    volumes:
+      - portfolio_pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U portfolio -d portfolio"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  # Interfaccia web opzionale per ispezionare il DB (http://localhost:8080)
+  adminer:
+    image: adminer:latest
+    container_name: portfolio_adminer
+    restart: unless-stopped
+    ports:
+      - "8081:8081"
+    depends_on:
+      - db
+
+volumes:
+  portfolio_pgdata:

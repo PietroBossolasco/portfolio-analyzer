@@ -1,0 +1,79 @@
+// Schema relazionale multi-utente con cifratura a riposo dei dati sensibili.
+// I campi sensibili (importi, ISIN, nomi titoli, descrizioni, valori di
+// portafoglio, email/nome utente) sono memorizzati cifrati (AES-256-GCM) come
+// stringhe base64. L'email ha anche un "blind index" (HMAC) per il lookup.
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id           String        @id @default(cuid())
+  emailHash    String        @unique // HMAC dell'email (per il login)
+  email        String // email cifrata
+  name         String? // nome cifrato
+  passwordHash String // hash bcrypt della password
+  targetProfile String?      @default("Bilanciato") // profilo di ribilanciamento
+  createdAt    DateTime      @default(now())
+  snapshots    Snapshot[]
+  transactions Transaction[]
+}
+
+model Snapshot {
+  id           Int        @id @default(autoincrement())
+  user         User       @relation(fields: [userId], references: [id], onDelete: Cascade)
+  userId       String
+  refDate      DateTime // in chiaro: serve per ordinamento/riconciliazione
+  fileName     String? // cifrato
+  totalValue   String? // cifrato
+  liquidity    String? // cifrato
+  allocConto   String? // cifrato
+  allocPrivate String? // cifrato
+  allocReddito String? // cifrato
+  positions    Position[]
+  createdAt    DateTime   @default(now())
+
+  @@unique([userId, refDate])
+}
+
+model Position {
+  id            Int      @id @default(autoincrement())
+  snapshot      Snapshot @relation(fields: [snapshotId], references: [id], onDelete: Cascade)
+  snapshotId    Int
+  sezione       String // in chiaro: categoria (non sensibile)
+  isin          String // cifrato
+  nome          String // cifrato
+  quantita      String? // cifrato
+  prezzoMercato String? // cifrato
+  controvalore  String? // cifrato
+  peso          String? // cifrato
+}
+
+model Transaction {
+  id          String   @id // transaction_id del CSV (UUID, non sensibile)
+  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  userId      String
+  datetime    DateTime // in chiaro: ordinamento
+  date        DateTime // in chiaro: raggruppamento mensile
+  tipo        String // in chiaro: filtri/aggregazioni
+  tipoRaw     String
+  categoria   String?
+  assetClass  String?
+  currency    String? // in chiaro: valuta (non sensibile)
+  nome        String? // cifrato
+  isin        String? // cifrato
+  shares      String? // cifrato
+  price       String? // cifrato
+  amount      String? // cifrato
+  fee         String? // cifrato
+  tax         String? // cifrato
+  description String? // cifrato (può contenere IBAN/controparte)
+
+  @@index([userId])
+  @@index([date])
+}
