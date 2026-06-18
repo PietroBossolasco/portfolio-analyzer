@@ -1,10 +1,11 @@
-// POST /api/upload — riceve PDF e/o CSV, li parsa lato server e popola Postgres.
+// POST /api/upload — riceve PDF e/o CSV, sceglie il parser in base alla banca
+// selezionata, li interpreta lato server e popola Postgres (dati cifrati).
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
-import { parsePdf } from "@/lib/parsing/pdf";
-import { parseCsv } from "@/lib/parsing/csv";
 import { getCurrentUser } from "@/lib/auth";
 import { encrypt, encNum } from "@/lib/crypto";
+import { getBankInfo, DEFAULT_BANK } from "@/lib/banks/catalog";
+import { getParser } from "@/lib/banks/registry";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -15,6 +16,16 @@ export async function POST(req: NextRequest) {
     if (!user) return NextResponse.json({ error: "Non autenticato." }, { status: 401 });
 
     const form = await req.formData();
+    const bank = String(form.get("bank") || DEFAULT_BANK);
+    const info = getBankInfo(bank);
+    if (!info || !info.enabled) {
+      return NextResponse.json({ error: "Banca non supportata o non ancora disponibile." }, { status: 400 });
+    }
+    const parser = getParser(bank);
+    if (!parser) {
+      return NextResponse.json({ error: "Parser non disponibile per questa banca." }, { status: 400 });
+    }
+
     const files = form.getAll("files").filter((f): f is File => f instanceof File);
     if (files.length === 0) {
       return NextResponse.json({ error: "Nessun file ricevuto." }, { status: 400 });
@@ -30,17 +41,21 @@ export async function POST(req: NextRequest) {
       const buf = Buffer.from(await file.arrayBuffer());
 
       if (name.endsWith(".pdf")) {
+        if (!parser.parsePdf) {
+          errors.push(`${file.name}: ${info.label} non supporta l'import PDF.`);
+          continue;
+        }
         try {
-          const parsed = await parsePdf(buf, file.name);
+          const parsed = await parser.parsePdf(buf, file.name);
           if (!parsed.refDate) {
             errors.push(`${file.name}: data di riferimento non trovata, saltato.`);
             continue;
           }
-          // upsert snapshot per data; ricrea le posizioni
           const snap = await prisma.snapshot.upsert({
-            where: { userId_refDate: { userId: user.id, refDate: parsed.refDate } },
+            where: { userId_bank_refDate: { userId: user.id, bank, refDate: parsed.refDate } },
             create: {
               userId: user.id,
+              bank,
               refDate: parsed.refDate,
               fileName: encrypt(file.name),
               totalValue: encNum(parsed.totalValue),
@@ -79,14 +94,18 @@ export async function POST(req: NextRequest) {
           errors.push(`${file.name}: errore parsing PDF (${e?.message ?? e}).`);
         }
       } else if (name.endsWith(".csv")) {
+        if (!parser.parseCsv) {
+          errors.push(`${file.name}: ${info.label} non supporta l'import CSV.`);
+          continue;
+        }
         try {
           const text = buf.toString("utf8");
-          const txs = parseCsv(text);
-          // upsert per id (idempotente), cifrando i campi sensibili
+          const txs = parser.parseCsv(text);
           for (const t of txs) {
             const data = {
               id: t.id,
               userId: user.id,
+              bank,
               datetime: t.datetime,
               date: t.date,
               tipo: t.tipo,
@@ -103,11 +122,7 @@ export async function POST(req: NextRequest) {
               tax: encNum(t.tax),
               description: encrypt(t.description),
             };
-            await prisma.transaction.upsert({
-              where: { id: t.id },
-              create: data,
-              update: data,
-            });
+            await prisma.transaction.upsert({ where: { id: t.id }, create: data, update: data });
           }
           txCount += txs.length;
         } catch (e: any) {
@@ -118,18 +133,9 @@ export async function POST(req: NextRequest) {
       }
     }
 
-    return NextResponse.json({
-      ok: true,
-      pdfCount,
-      positionCount,
-      txCount,
-      errors,
-    });
+    return NextResponse.json({ ok: true, bank, pdfCount, positionCount, txCount, errors });
   } catch (e: any) {
-    return NextResponse.json(
-      { error: `Errore interno: ${e?.message ?? e}` },
-      { status: 500 }
-    );
+    return NextResponse.json({ error: `Errore interno: ${e?.message ?? e}` }, { status: 500 });
   }
 }
 
@@ -137,7 +143,6 @@ export async function POST(req: NextRequest) {
 export async function DELETE() {
   const user = await getCurrentUser();
   if (!user) return NextResponse.json({ error: "Non autenticato." }, { status: 401 });
-  // le posizioni cadono in cascata con gli snapshot
   await prisma.snapshot.deleteMany({ where: { userId: user.id } });
   await prisma.transaction.deleteMany({ where: { userId: user.id } });
   return NextResponse.json({ ok: true });

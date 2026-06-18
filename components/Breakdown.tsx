@@ -37,7 +37,7 @@ export function BreakdownBars({
                 <span className="truncate">{s.name}</span>
               </span>
               <span className="flex shrink-0 items-baseline gap-2">
-                {showValue && <span className="text-xs text-slate-400">{fmtEur(s.value)}</span>}
+                {showValue && <span className="priv text-xs text-slate-400">{fmtEur(s.value)}</span>}
                 <span className="w-12 text-right font-semibold tabular-nums text-ink-900">{s.pct}%</span>
               </span>
             </div>

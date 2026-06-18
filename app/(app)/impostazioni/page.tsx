@@ -1,6 +1,7 @@
 import { requireUser } from "@/lib/auth";
 import ChangePasswordForm from "@/components/ChangePasswordForm";
 import DeleteAccountButton from "@/components/DeleteAccountButton";
+import { PageHeader } from "@/components/PageHeader";
 
 export const dynamic = "force-dynamic";
 
@@ -9,10 +10,7 @@ export default async function ImpostazioniPage() {
 
   return (
     <div className="max-w-3xl space-y-6">
-      <header>
-        <h1 className="text-2xl font-bold text-ink-900">Impostazioni</h1>
-        <p className="text-sm text-slate-500">Gestisci account, sicurezza e dati.</p>
-      </header>
+      <PageHeader title="Impostazioni" subtitle="Gestisci account, sicurezza e dati." />
 
       {/* Account */}
       <section className="card">

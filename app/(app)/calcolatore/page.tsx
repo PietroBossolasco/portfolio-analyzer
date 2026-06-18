@@ -86,8 +86,8 @@ export default function CalcolatorePage() {
   return (
     <div className="space-y-6">
       <header>
-        <h1 className="text-2xl font-bold text-slate-900">Calcolatore — Conviene l’acquisto?</h1>
-        <p className="text-sm text-slate-500">
+        <h1 className="text-2xl font-bold text-ink-900">Calcolatore — Conviene l’acquisto?</h1>
+        <p className="mt-1 text-sm text-slate-500">
           Modifica i campi <span className="rounded bg-amber-50 px-1 text-amber-700">gialli</span>; i risultati si aggiornano in tempo reale.
         </p>
       </header>

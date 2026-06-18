@@ -2,15 +2,19 @@
 
 import { useRouter } from "next/navigation";
 import { useRef, useState } from "react";
+import { BANKS, DEFAULT_BANK } from "@/lib/banks/catalog";
 
 export default function UploadForm() {
   const router = useRouter();
   const inputRef = useRef<HTMLInputElement>(null);
   const [files, setFiles] = useState<File[]>([]);
+  const [bank, setBank] = useState(DEFAULT_BANK);
   const [busy, setBusy] = useState(false);
   const [result, setResult] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [dragOver, setDragOver] = useState(false);
+
+  const bankInfo = BANKS.find((b) => b.id === bank);
 
   function addFiles(list: FileList | null) {
     if (!list) return;
@@ -30,6 +34,7 @@ export default function UploadForm() {
     setResult(null);
     try {
       const fd = new FormData();
+      fd.append("bank", bank);
       files.forEach((f) => fd.append("files", f));
       const res = await fetch("/api/upload", { method: "POST", body: fd });
       const data = await res.json();
@@ -60,6 +65,36 @@ export default function UploadForm() {
 
   return (
     <div className="space-y-4">
+      {/* Selettore banca */}
+      <div>
+        <label className="label">Banca / broker</label>
+        <div className="flex flex-wrap gap-2">
+          {BANKS.map((b) => (
+            <button
+              key={b.id}
+              type="button"
+              disabled={!b.enabled}
+              onClick={() => b.enabled && setBank(b.id)}
+              className={`rounded-xl border px-3.5 py-2 text-sm font-medium transition ${
+                bank === b.id
+                  ? "border-brand-500 bg-brand-50 text-brand-700 ring-1 ring-brand-500/30"
+                  : b.enabled
+                  ? "border-slate-300 bg-white text-slate-600 hover:bg-slate-50"
+                  : "cursor-not-allowed border-slate-200 bg-slate-50 text-slate-400"
+              }`}
+            >
+              {b.label}
+              {!b.enabled && <span className="ml-1.5 text-[10px] uppercase tracking-wide">· {b.note}</span>}
+            </button>
+          ))}
+        </div>
+        {bankInfo && (
+          <p className="mt-1.5 text-xs text-slate-400">
+            Formati supportati: {[bankInfo.formats.pdf && "PDF", bankInfo.formats.csv && "CSV"].filter(Boolean).join(" · ")}
+          </p>
+        )}
+      </div>
+
       <div
         onDragOver={(e) => { e.preventDefault(); setDragOver(true); }}
         onDragLeave={() => setDragOver(false)}

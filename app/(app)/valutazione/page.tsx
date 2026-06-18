@@ -5,6 +5,7 @@ import { getDashboardData, getTransactions } from "@/lib/data";
 import { buildDiversification } from "@/lib/diversification";
 import { computeHealthCheck, type HealthDimension } from "@/lib/healthcheck";
 import { ScoreGauge } from "@/components/Charts";
+import { PageHeader } from "@/components/PageHeader";
 
 export const dynamic = "force-dynamic";
 
@@ -54,12 +55,10 @@ export default async function ValutazionePage() {
 
   return (
     <div className="space-y-6">
-      <header>
-        <h1 className="text-2xl font-bold text-ink-900">Valutazione del portafoglio</h1>
-        <p className="text-sm text-slate-500">
-          Analisi su 8 dimensioni con consigli pratici di finanza personale.
-        </p>
-      </header>
+      <PageHeader
+        title="Valutazione del portafoglio"
+        subtitle="Analisi su 8 dimensioni con consigli pratici di finanza personale."
+      />
 
       {/* Punteggio complessivo */}
       <section className="card grid grid-cols-1 items-center gap-6 md:grid-cols-3">

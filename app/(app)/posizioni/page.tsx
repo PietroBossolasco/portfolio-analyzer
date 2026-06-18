@@ -1,6 +1,8 @@
 import Link from "next/link";
 import { getDashboardData } from "@/lib/data";
 import { requireUser } from "@/lib/auth";
+import { Sensitive } from "@/components/Sensitive";
+import { PageHeader } from "@/components/PageHeader";
 import { fmtEur, fmtNum, fmtPct, monthLabel } from "@/lib/format";
 
 export const dynamic = "force-dynamic";
@@ -14,17 +16,12 @@ export default async function PosizioniPage() {
     );
   }
 
-  const tot = d.positions.reduce((a, p) => a + (p.controvalore ?? 0), 0);
-
   return (
-    <div className="space-y-4">
-      <header>
-        <h1 className="text-2xl font-bold text-slate-900">Posizioni</h1>
-        <p className="text-sm text-slate-500">
-          {d.latestRefDate ? `Al ${monthLabel(d.latestRefDate)} · ` : ""}
-          {d.positions.length} titoli · totale {fmtEur(tot)}
-        </p>
-      </header>
+    <div className="space-y-5">
+      <PageHeader
+        title="Posizioni"
+        subtitle={`${d.latestRefDate ? `Al ${monthLabel(d.latestRefDate)} · ` : ""}${d.positions.length} titoli in portafoglio`}
+      />
 
       <div className="card overflow-x-auto p-0">
         <table className="min-w-full divide-y divide-slate-200">
@@ -51,9 +48,9 @@ export default async function PosizioniPage() {
                 <td className="td text-right">{fmtNum(p.quantita, 4)}</td>
                 <td className="td text-right">{fmtNum(p.prezzoCarico, 4)}</td>
                 <td className="td text-right">{fmtNum(p.prezzoMercato, 4)}</td>
-                <td className="td text-right font-medium">{fmtEur(p.controvalore)}</td>
+                <td className="td text-right font-medium"><Sensitive>{fmtEur(p.controvalore)}</Sensitive></td>
                 <td className={`td text-right ${(p.plusMinus ?? 0) >= 0 ? "text-emerald-600" : "text-red-600"}`}>
-                  {fmtEur(p.plusMinus)}
+                  <Sensitive>{fmtEur(p.plusMinus)}</Sensitive>
                 </td>
                 <td className={`td text-right ${(p.plusMinusPct ?? 0) >= 0 ? "text-emerald-600" : "text-red-600"}`}>
                   {fmtPct(p.plusMinusPct)}

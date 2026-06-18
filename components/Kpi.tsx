@@ -4,12 +4,14 @@ export function Kpi({
   sub,
   tone = "default",
   accent = false,
+  sensitive = false,
 }: {
   label: string;
   value: string;
   sub?: string;
   tone?: "default" | "pos" | "neg";
   accent?: boolean;
+  sensitive?: boolean;
 }) {
   const valueCls =
     tone === "pos" ? "text-emerald-600" : tone === "neg" ? "text-rose-600" : "text-ink-900";
@@ -37,7 +39,7 @@ export function Kpi({
         {label}
       </div>
       <div className={`mt-1.5 font-display text-2xl font-bold tabular-nums ${valueCls}`}>
-        {value}
+        {sensitive ? <span className="priv">{value}</span> : value}
       </div>
       {subEl}
     </div>

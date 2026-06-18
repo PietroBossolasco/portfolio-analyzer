@@ -77,3 +77,14 @@
     @apply mb-1.5 block text-sm font-medium text-slate-600;
   }
 }
+
+/* Modalità privacy: sfoca gli importi sensibili; reveal al passaggio del mouse. */
+html[data-privacy="on"] .priv {
+  filter: blur(7px);
+  transition: filter 0.12s ease;
+  cursor: default;
+  user-select: none;
+}
+html[data-privacy="on"] .priv:hover {
+  filter: none;
+}

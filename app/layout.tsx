@@ -22,6 +22,15 @@ export const metadata: Metadata = {
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
     <html lang="it" className={`${inter.variable} ${sora.variable}`}>
+      <head>
+        {/* applica la modalità privacy prima del paint per evitare flash */}
+        <script
+          dangerouslySetInnerHTML={{
+            __html:
+              "try{if(localStorage.getItem('privacy')==='on'){document.documentElement.dataset.privacy='on'}}catch(e){}",
+          }}
+        />
+      </head>
       <body>{children}</body>
     </html>
   );

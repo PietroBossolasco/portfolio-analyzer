@@ -95,11 +95,11 @@ export default function TransactionsTable({ rows }: { rows: TxView[] }) {
                 <td className="td text-right">{fmtNum(r.shares, 4)}</td>
                 <td className="td text-right">{fmtNum(r.price, 4)}</td>
                 <td className={`td text-right ${(r.amount ?? 0) >= 0 ? "text-emerald-700" : "text-slate-700"}`}>
-                  {fmtEur(r.amount)}
+                  <span className="priv">{fmtEur(r.amount)}</span>
                 </td>
-                <td className="td text-right">{fmtEur(r.fee)}</td>
+                <td className="td text-right"><span className="priv">{fmtEur(r.fee)}</span></td>
                 <td className={`td text-right ${r.realized == null ? "" : r.realized >= 0 ? "text-emerald-600" : "text-red-600"}`}>
-                  {r.realized == null ? "—" : fmtEur(r.realized)}
+                  {r.realized == null ? "—" : <span className="priv">{fmtEur(r.realized)}</span>}
                 </td>
               </tr>
             ))}

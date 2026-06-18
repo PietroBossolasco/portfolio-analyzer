@@ -6,10 +6,13 @@ import {
   BarChart, Bar,
 } from "recharts";
 import { monthLabel } from "@/lib/format";
+import { useHideAmounts } from "@/components/usePrivacy";
 import type { MonthRow, EnrichedPosition } from "@/lib/analytics";
 
 const COLORS = ["#4F46E5", "#6366F1", "#818CF8", "#A5B4FC", "#C9A227", "#10B981"];
 const eur = (v: number) => new Intl.NumberFormat("it-IT", { maximumFractionDigits: 0 }).format(v) + " €";
+// formatter rispettoso della privacy (tooltip)
+const mask = (v: number, hide: boolean) => (hide ? "••• €" : eur(v));
 const TOOLTIP = {
   contentStyle: {
     borderRadius: 12,
@@ -25,6 +28,7 @@ function labelFromPeriodo(p: string) {
 }
 
 export function AllocationPie({ data }: { data: { categoria: string; valore: number }[] }) {
+  const hide = useHideAmounts();
   if (!data.length) return <Empty />;
   return (
     <ResponsiveContainer width="100%" height={260}>
@@ -33,7 +37,7 @@ export function AllocationPie({ data }: { data: { categoria: string; valore: num
           outerRadius={90} label={(e: any) => `${(e.percent * 100).toFixed(0)}%`}>
           {data.map((_, i) => <Cell key={i} fill={COLORS[i % COLORS.length]} />)}
         </Pie>
-        <Tooltip formatter={(v: number) => eur(v)} {...TOOLTIP} />
+        <Tooltip formatter={(v: number) => mask(v, hide)} {...TOOLTIP} />
         <Legend />
       </PieChart>
     </ResponsiveContainer>
@@ -41,6 +45,7 @@ export function AllocationPie({ data }: { data: { categoria: string; valore: num
 }
 
 export function TrendLine({ months }: { months: MonthRow[] }) {
+  const hide = useHideAmounts();
   if (!months.length) return <Empty />;
   const data = months.map((m) => ({
     name: labelFromPeriodo(m.periodo),
@@ -53,8 +58,8 @@ export function TrendLine({ months }: { months: MonthRow[] }) {
       <LineChart data={data} margin={{ top: 5, right: 20, bottom: 5, left: 10 }}>
         <CartesianGrid strokeDasharray="3 3" stroke="#eee" />
         <XAxis dataKey="name" tick={{ fontSize: 11 }} interval="preserveStartEnd" />
-        <YAxis tick={{ fontSize: 11 }} tickFormatter={(v) => eur(v)} width={70} />
-        <Tooltip formatter={(v: number) => eur(v)} {...TOOLTIP} />
+        <YAxis tick={{ fontSize: 11 }} tickFormatter={(v) => (hide ? "" : eur(v))} width={hide ? 30 : 70} />
+        <Tooltip formatter={(v: number) => mask(v, hide)} {...TOOLTIP} />
         <Legend />
         <Line type="monotone" dataKey="Versamenti cumulati" stroke="#4F46E5" strokeWidth={2.5} dot={false} />
         <Line type="monotone" dataKey="Liquidità calcolata" stroke="#10B981" strokeWidth={2.5} dot={false} />
@@ -65,6 +70,7 @@ export function TrendLine({ months }: { months: MonthRow[] }) {
 }
 
 export function FlowsBar({ months }: { months: MonthRow[] }) {
+  const hide = useHideAmounts();
   if (!months.length) return <Empty />;
   const data = months.map((m) => ({
     name: labelFromPeriodo(m.periodo),
@@ -77,8 +83,8 @@ export function FlowsBar({ months }: { months: MonthRow[] }) {
       <BarChart data={data} margin={{ top: 5, right: 20, bottom: 5, left: 10 }}>
         <CartesianGrid strokeDasharray="3 3" stroke="#eee" />
         <XAxis dataKey="name" tick={{ fontSize: 11 }} interval="preserveStartEnd" />
-        <YAxis tick={{ fontSize: 11 }} width={50} />
-        <Tooltip formatter={(v: number) => eur(v)} {...TOOLTIP} />
+        <YAxis tick={{ fontSize: 11 }} width={hide ? 24 : 50} tickFormatter={(v) => (hide ? "" : String(v))} />
+        <Tooltip formatter={(v: number) => mask(v, hide)} {...TOOLTIP} />
         <Legend />
         <Bar dataKey="Dividendi" fill="#C9A227" radius={[4, 4, 0, 0]} />
         <Bar dataKey="Interessi" fill="#10B981" radius={[4, 4, 0, 0]} />
@@ -89,6 +95,7 @@ export function FlowsBar({ months }: { months: MonthRow[] }) {
 }
 
 export function PositionsBar({ positions }: { positions: EnrichedPosition[] }) {
+  const hide = useHideAmounts();
   if (!positions.length) return <Empty />;
   const data = [...positions]
     .filter((p) => p.controvalore != null)
@@ -98,9 +105,9 @@ export function PositionsBar({ positions }: { positions: EnrichedPosition[] }) {
     <ResponsiveContainer width="100%" height={Math.max(260, data.length * 34)}>
       <BarChart data={data} layout="vertical" margin={{ top: 5, right: 30, bottom: 5, left: 10 }}>
         <CartesianGrid strokeDasharray="3 3" stroke="#eee" />
-        <XAxis type="number" tick={{ fontSize: 11 }} tickFormatter={(v) => eur(v)} />
+        <XAxis type="number" tick={{ fontSize: 11 }} tickFormatter={(v) => (hide ? "" : eur(v))} />
         <YAxis type="category" dataKey="name" tick={{ fontSize: 11 }} width={150} />
-        <Tooltip formatter={(v: number) => eur(v)} {...TOOLTIP} />
+        <Tooltip formatter={(v: number) => mask(v, hide)} {...TOOLTIP} />
         <Bar dataKey="Controvalore" fill="#6366F1" radius={[0, 5, 5, 0]} />
       </BarChart>
     </ResponsiveContainer>
@@ -108,6 +115,7 @@ export function PositionsBar({ positions }: { positions: EnrichedPosition[] }) {
 }
 
 export function Donut({ data }: { data: { name: string; value: number }[] }) {
+  const hide = useHideAmounts();
   if (!data.length) return <Empty />;
   return (
     <ResponsiveContainer width="100%" height={280}>
@@ -116,7 +124,7 @@ export function Donut({ data }: { data: { name: string; value: number }[] }) {
           paddingAngle={1} label={(e: any) => `${(e.percent * 100).toFixed(0)}%`}>
           {data.map((_, i) => <Cell key={i} fill={COLORS[i % COLORS.length]} />)}
         </Pie>
-        <Tooltip formatter={(v: number) => eur(v)} {...TOOLTIP} />
+        <Tooltip formatter={(v: number) => mask(v, hide)} {...TOOLTIP} />
         <Legend />
       </PieChart>
     </ResponsiveContainer>

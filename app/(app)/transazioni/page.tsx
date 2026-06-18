@@ -2,6 +2,7 @@ import Link from "next/link";
 import { getTransactions } from "@/lib/data";
 import { requireUser } from "@/lib/auth";
 import TransactionsTable, { type TxView } from "@/components/TransactionsTable";
+import { PageHeader } from "@/components/PageHeader";
 
 export const dynamic = "force-dynamic";
 
@@ -36,13 +37,11 @@ export default async function TransazioniPage() {
   }));
 
   return (
-    <div className="space-y-4">
-      <header>
-        <h1 className="text-2xl font-bold text-slate-900">Registro Transazioni</h1>
-        <p className="text-sm text-slate-500">
-          Movimenti normalizzati dal CSV, con plus/minus realizzata a costo medio.
-        </p>
-      </header>
+    <div className="space-y-5">
+      <PageHeader
+        title="Registro Transazioni"
+        subtitle="Movimenti normalizzati dal CSV, con plus/minus realizzata a costo medio."
+      />
       <TransactionsTable rows={rows} />
     </div>
   );

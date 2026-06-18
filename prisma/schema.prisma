@@ -28,6 +28,7 @@ model Snapshot {
   id           Int        @id @default(autoincrement())
   user         User       @relation(fields: [userId], references: [id], onDelete: Cascade)
   userId       String
+  bank         String     @default("trade-republic") // provenienza (banca)
   refDate      DateTime // in chiaro: serve per ordinamento/riconciliazione
   fileName     String? // cifrato
   totalValue   String? // cifrato
@@ -38,7 +39,7 @@ model Snapshot {
   positions    Position[]
   createdAt    DateTime   @default(now())
 
-  @@unique([userId, refDate])
+  @@unique([userId, bank, refDate])
 }
 
 model Position {
@@ -58,6 +59,7 @@ model Transaction {
   id          String   @id // transaction_id del CSV (UUID, non sensibile)
   user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
   userId      String
+  bank        String   @default("trade-republic") // provenienza (banca)
   datetime    DateTime // in chiaro: ordinamento
   date        DateTime // in chiaro: raggruppamento mensile
   tipo        String // in chiaro: filtri/aggregazioni

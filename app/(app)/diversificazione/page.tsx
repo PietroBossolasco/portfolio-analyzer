@@ -6,6 +6,7 @@ import { buildDiversification } from "@/lib/diversification";
 import { ScoreGauge } from "@/components/Charts";
 import { BreakdownBars } from "@/components/Breakdown";
 import Rebalance from "@/components/Rebalance";
+import { PageHeader } from "@/components/PageHeader";
 import { fmtEur, fmtNum, fmtPct } from "@/lib/format";
 
 export const dynamic = "force-dynamic";
@@ -36,13 +37,10 @@ export default async function DiversificazionePage() {
 
   return (
     <div className="space-y-6">
-      <header>
-        <h1 className="text-2xl font-bold text-ink-900">Diversificazione</h1>
-        <p className="text-sm text-slate-500">
-          Ripartizione per area geografica, settore e asset class con look-through degli ETF.
-          {div.enrichedExternally && " Classificazione arricchita via OpenFIGI."}
-        </p>
-      </header>
+      <PageHeader
+        title="Diversificazione"
+        subtitle={`Ripartizione per area, settore e asset class con look-through degli ETF.${div.enrichedExternally ? " Arricchita via OpenFIGI." : ""}`}
+      />
 
       {/* Punteggio + metriche */}
       <section className="grid grid-cols-1 gap-6 lg:grid-cols-3">
@@ -57,7 +55,7 @@ export default async function DiversificazionePage() {
             <Metric label="Top 3 posizioni" value={fmtPct(m.top3Weight)} hint="peso cumulato" />
             <Metric label="Aree effettive" value={fmtNum(m.effRegions)} hint={m.topRegion ? `top: ${m.topRegion.name}` : ""} />
             <Metric label="Settori effettivi" value={fmtNum(m.effSectors)} hint={m.topSector ? `top: ${m.topSector.name}` : ""} />
-            <Metric label="Patrimonio analizzato" value={fmtEur(div.totalPortfolio)} hint="investito + liquidità" />
+            <Metric label="Patrimonio analizzato" value={fmtEur(div.totalPortfolio)} hint="investito + liquidità" sensitive />
           </div>
         </div>
       </section>
@@ -119,11 +117,13 @@ export default async function DiversificazionePage() {
   );
 }
 
-function Metric({ label, value, hint }: { label: string; value: string; hint?: string }) {
+function Metric({ label, value, hint, sensitive }: { label: string; value: string; hint?: string; sensitive?: boolean }) {
   return (
     <div className="rounded-xl border border-slate-200/80 bg-slate-50/60 px-4 py-3">
       <div className="text-[11px] font-semibold uppercase tracking-wider text-slate-400">{label}</div>
-      <div className="mt-1 font-display text-xl font-bold text-ink-900">{value}</div>
+      <div className="mt-1 font-display text-xl font-bold text-ink-900">
+        {sensitive ? <span className="priv">{value}</span> : value}
+      </div>
       {hint && <div className="text-xs text-slate-400">{hint}</div>}
     </div>
   );

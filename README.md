@@ -36,6 +36,9 @@ valutazione) sono ricalcolate a runtime.
   con plus/minus realizzata a costo medio ponderato.
 - **Calcolatore** — valutazione interattiva di obbligazioni (YTM lordo/netto) ed
   ETF (CAGR netto, impatto dei costi).
+- **Modalità privacy** — interruttore "Nascondi importi" nella sidebar: sfoca tutti
+  gli importi in € (rivelabili al passaggio del mouse) lasciando visibili percentuali
+  e quantità. La preferenza è ricordata ed è applicata prima del primo paint.
 - **Carica dati** — upload drag&drop di PDF/CSV, con import idempotente.
 - **Impostazioni** — cambio password, esportazione dei dati (CSV/JSON) ed
   eliminazione dell'account.
@@ -257,6 +260,29 @@ L'import è **idempotente e incrementale**:
   duplicarlo (chiave `utente + data di riferimento`).
 
 `DELETE /api/upload` svuota i dati dell'utente corrente (per ricominciare da zero).
+
+### Supporto multi-banca (estensibile)
+
+L'import è basato su un'**architettura a provider**: la pagina *Carica dati* mostra
+un **selettore della banca/broker** e l'upload usa il parser registrato per quella
+banca. Oggi è attiva **Trade Republic**; altre (Fineco, Directa, DEGIRO, Scalable…)
+sono già elencate come *"in arrivo"*.
+
+Separazione netta tra metadati e implementazione:
+
+- `lib/banks/catalog.ts` — elenco banche (id, label, formati, stato) — *client-safe*,
+  alimenta il selettore senza importare dipendenze di parsing.
+- `lib/banks/types.ts` — il contratto `BankParser` (`parsePdf?`, `parseCsv?`) che ogni
+  banca implementa restituendo la **stessa struttura normalizzata**.
+- `lib/banks/<id>.ts` — il provider della singola banca (es. `trade-republic.ts`).
+- `lib/banks/registry.ts` — mappa id → provider (lato server).
+
+Ogni snapshot e transazione memorizza la **banca di provenienza** (campo `bank`), così
+dati di banche diverse possono coesistere e vengono aggregati nel patrimonio totale.
+
+**Aggiungere una banca** in futuro: (1) aggiungi i metadati in `catalog.ts`
+(`enabled: true`), (2) crea `lib/banks/<id>.ts` che implementa `BankParser`,
+(3) registralo in `registry.ts`. Nessun'altra parte dell'app va modificata.
 
 ---
 

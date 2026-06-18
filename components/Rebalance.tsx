@@ -100,9 +100,9 @@ export default function Rebalance({
                     {aligned ? (
                       <span className="badge-pos">✓ allineato</span>
                     ) : r.delta > 0 ? (
-                      <span className="badge bg-emerald-50 text-emerald-700">+ {fmtEur(r.delta)}</span>
+                      <span className="badge bg-emerald-50 text-emerald-700">+ <span className="priv">{fmtEur(r.delta)}</span></span>
                     ) : (
-                      <span className="badge bg-rose-50 text-rose-700">− {fmtEur(Math.abs(r.delta))}</span>
+                      <span className="badge bg-rose-50 text-rose-700">− <span className="priv">{fmtEur(Math.abs(r.delta))}</span></span>
                     )}
                   </td>
                 </tr>
